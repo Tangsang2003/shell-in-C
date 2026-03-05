@@ -1,3 +1,7 @@
+#include <sys/types.h> // pid_t
+#include <unistd.h> // pid_t, fork, exec
+#include <sys/wait.h> // WIFEXITED, Status Macros
+
 #include <stdio.h>
 #include <stdlib.h> // EXIT_FAILURE, EXIT_SUCCESS
 #include <string.h>
@@ -138,4 +142,43 @@ char **shell_tokenize_command(char* command) {
     }
     tokens[position] = NULL;
     return tokens;
+}
+
+/*
+Shell launch function
+*/
+int shell_launch(char **args) {
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+
+    // Child process
+    if (pid == 0)
+    {
+        if (execvp(args[0], args) == -1)
+        {
+            /*
+            Child never returns, so must be error because if execvp is successful
+            the process has been transformed to a different program
+            */
+            perror("Shell");
+            exit(EXIT_FAILURE);
+        }
+    }
+    // If fork() failed
+    else if (pid < 0)
+    {
+        perror("Shell");
+    }
+
+    // Parent process
+    else
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+    return 1;
 }
