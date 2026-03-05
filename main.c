@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h> // EXIT_FAILURE, EXIT_SUCCESS
+#include <string.h>
 
 #define SHELL_LINE_BUFFER_SIZE 1024
+#define SHELL_TOKENS_BUFFER_SIZE 64
+#define TOKEN_DELIMITERS " \t\n\a\r"
 
 void shell_loop();
 char *shell_read_line();
+char **shell_tokenize_command(char*);
 
 int main(int argc, char **argv) {
     // Initialize through configuration files if any
@@ -23,16 +27,23 @@ void shell_loop() {
     do {
         printf(">");
         // Get line
-        char *readline = shell_read_line();
-        if (readline) {
-            printf("You entered: %s\n", readline);
+        char *line = shell_read_line();
+        if (!line) {
+            break;
         }
-        while (*readline != '\0') {
-            printf("%c", *readline);
-            readline++;
-        }
+        printf("You entered: %s", line);
         
         // Split line
+
+        char **args = shell_tokenize_command(line);
+        if (args) {
+            for (int i = 0; args[i] != NULL; i++) {
+                printf("(%d) (%s) ", i + 1, args[i]);
+            }
+        }
+
+        free(line);
+        free(args);
         // Execute
         // See status
         // Free line
@@ -87,4 +98,44 @@ char *shell_read_line(void) {
             }
         }
     }
+}
+
+/*
+Function to tokenize the read line/command.
+Takes in the read string.
+Tokenizes and returns array of pointers to the tokenized tokens.
+*/
+char **shell_tokenize_command(char* command) {
+    int position = 0, buffer_size = SHELL_TOKENS_BUFFER_SIZE;
+    char **tokens = malloc(buffer_size * sizeof(char*));
+    char *token;
+
+    if (!tokens) {
+        fprintf(stderr, "Shell: Allocation Error!");
+        exit(EXIT_FAILURE);
+    }
+
+    token = strtok(command, TOKEN_DELIMITERS);
+
+    while (token != NULL) {
+        tokens[position] = token;
+        position++;
+        
+        if (position >= buffer_size) {
+            buffer_size += SHELL_TOKENS_BUFFER_SIZE;
+            char ** new_tokens = realloc(tokens, buffer_size * sizeof(char*));
+
+            if (!new_tokens) {
+                free(tokens);
+                fprintf(stderr, "Shell: Allocation Error!");
+                exit(EXIT_FAILURE);
+            }
+
+            tokens = new_tokens;
+        }
+
+        token = strtok(NULL, TOKEN_DELIMITERS);      
+    }
+    tokens[position] = NULL;
+    return tokens;
 }
