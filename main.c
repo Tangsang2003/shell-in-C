@@ -10,9 +10,37 @@
 #define SHELL_TOKENS_BUFFER_SIZE 64
 #define TOKEN_DELIMITERS " \t\n\a\r"
 
+// Main shell loop prototype
 void shell_loop();
+// Read line function prototype
 char *shell_read_line();
+// Line Tokenizer  function prototype
 char **shell_tokenize_command(char*);
+
+// Shell built-ins function prototypes
+int shell_cd (char **args);
+int shell_help (char **args);
+int shell_exit (char **args);
+
+// Available builtins
+char *built_ins_str[] = {
+    "cd",
+    "help",
+    "exit"
+};
+
+// Function pointer
+int (*built_in_func[]) (char **args) = {
+    &shell_cd,
+    &shell_help,
+    &shell_exit
+};
+
+// Return number of builtins avaiable
+int num_shell_builtins() {
+    return sizeof(built_ins_str) / sizeof(char*);
+}
+
 
 int main(int argc, char **argv) {
     // Initialize through configuration files if any
@@ -179,6 +207,22 @@ int shell_launch(char **args) {
         {
             wpid = waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+    return 1;
+}
+
+/*
+Shell built-ins implementations
+*/
+// Shell cd
+int shell_cd(char **args) {
+    if (args[1] == NULL) {
+        fprintf(stderr, "Shell: expected argument to \"cd\"\n");
+    }
+    else {
+        if (chdir(args[1]) != 0) {
+            perror("Shell");
+        }
     }
     return 1;
 }
