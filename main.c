@@ -41,48 +41,32 @@ int num_shell_builtins() {
     return sizeof(built_ins_str) / sizeof(char*);
 }
 
+int shell_execute(char **args);
+
 
 int main(int argc, char **argv) {
     // Initialize through configuration files if any
 
     shell_loop();
 
-    // Perform cleanup.
-    // Terminate
     return EXIT_SUCCESS;
 }
 
 void shell_loop() {
     char *line;
     char **args;
-    int loop = 0;
+    int status;
+
     do {
-        printf(">");
-        // Get line
-        char *line = shell_read_line();
-        if (!line) {
-            break;
-        }
-        printf("You entered: %s", line);
+        printf("> ");
+        line = shell_read_line();
+        args = shell_tokenize_command(line);
+        status = shell_execute(args);  
         
-        // Split line
-
-        char **args = shell_tokenize_command(line);
-        if (args) {
-            for (int i = 0; args[i] != NULL; i++) {
-                printf("(%d) (%s) ", i + 1, args[i]);
-            }
-        }
-
         free(line);
         free(args);
-        // Execute
-        // See status
-        // Free line
-        // Free args
-        loop++;
-        
-    } while (loop < 5);   
+
+    } while (status);
 }
 
 /* Function to read the user command*/
@@ -241,4 +225,20 @@ int shell_help(char **args) {
 
 int shell_exit(char **args) {
     return 0;
+}
+
+int shell_execute(char **args) {
+    int i;
+    
+    if (args[0] == NULL) {
+        // Empty command
+        return 1;
+    }
+    for (i = 0; i < num_shell_builtins(); i++) {
+        if (strcmp(args[0], built_ins_str[i]) == 0) {
+            return (*built_in_func[i])(args); 
+        }
+    }
+
+    return shell_launch(args);
 }
