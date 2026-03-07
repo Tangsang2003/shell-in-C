@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h> // EXIT_FAILURE, EXIT_SUCCESS
 #include <string.h>
+#include <limits.h> // For PATH_MAX
 
 #define SHELL_LINE_BUFFER_SIZE 1024
 #define SHELL_TOKENS_BUFFER_SIZE 64
@@ -43,6 +44,8 @@ int num_shell_builtins() {
 
 int shell_execute(char **args);
 
+void print_prompt();
+
 
 int main(int argc, char **argv) {
     // Initialize through configuration files if any
@@ -58,9 +61,10 @@ void shell_loop() {
     char *line;
     char **args;
     int status;
+    printf("\033[1;36mTangsang's custom shell\n\033[0m2026\n");
 
     do {
-        printf("> ");
+        print_prompt();
         line = shell_read_line();
         args = shell_tokenize_command(line);
         status = shell_execute(args);  
@@ -249,4 +253,16 @@ int shell_execute(char **args) {
     }
 
     return shell_launch(args);
+}
+
+void print_prompt() {
+    char *cwd = getcwd(NULL, 0);
+
+    if (cwd != NULL) {
+        printf("\033[1;36mTS: \033[0;32m%s$ \033[0m", cwd);
+        free(cwd);
+    }
+    else {
+        perror("getcwd() error");
+    }
 }
