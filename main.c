@@ -226,3 +226,19 @@ int shell_cd(char **args) {
     }
     return 1;
 }
+
+int shell_help(char **args) {
+    printf("Tangsang's Shell\n");
+    printf("Type program names and arguments and hit enter\n");
+    printf("The following are the built-ins.\n");
+    
+    for (int i = 0; i < num_shell_builtins(); i++) {
+        printf("%d. %s\n", i + 1, built_ins_str[i]);
+    }
+    printf("Use the man command for information on other programs.\n");
+    return 1;
+}
+
+int shell_exit(char **args) {
+    return 0;
+}
