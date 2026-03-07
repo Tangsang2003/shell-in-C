@@ -46,6 +46,8 @@ int shell_execute(char **args);
 
 int main(int argc, char **argv) {
     // Initialize through configuration files if any
+    (void) argc;
+    (void) argv;
 
     shell_loop();
 
@@ -190,6 +192,10 @@ int shell_launch(char **args) {
         do
         {
             wpid = waitpid(pid, &status, WUNTRACED);
+            if (wpid == -1) {
+                perror("Shell");
+                break;
+            }
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
     return 1;
@@ -212,6 +218,7 @@ int shell_cd(char **args) {
 }
 
 int shell_help(char **args) {
+    (void) args;
     printf("Tangsang's Shell\n");
     printf("Type program names and arguments and hit enter\n");
     printf("The following are the built-ins.\n");
@@ -224,6 +231,7 @@ int shell_help(char **args) {
 }
 
 int shell_exit(char **args) {
+    (void) args;
     return 0;
 }
 
